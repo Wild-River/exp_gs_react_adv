@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-16">AI練習コーチ</h1>
+      <h1 className="text-2xl font-bold mb-16">🎉 AI練習コーチ 🎉</h1>
 
       <p className="text-lg mb-4">お題：
         <select value={topic} onChange={(e) => setTopic(e.target.value)} className="outline outline-stone-300 rounded p-2 ml-2">
@@ -72,7 +72,7 @@ export default function Home() {
       </button>
 
       {feedback && (
-        <div style={{ whiteSpace: "pre-wrap" }} className="text-lg leading-10 w-3xl pt-10 px-10 border-8 border-teal-600/30 bg-olive-50/50">
+        <div className="pre-wrap text-lg leading-10 w-3xl pt-10 px-10 border-8 border-teal-600/30 bg-olive-50/50">
           <ReactMarkdown
             components={{
               // 出力のMarkdownの中に<strong>が出てきたら指定した処理を使う
