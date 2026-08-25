@@ -1,13 +1,13 @@
 // src/app/api/coach/route.ts
 export async function POST(request: Request) {
-  //   Body が空/JSONでない時に備えて、try で受け止める
+  // JSON自体が壊れている場合（parseに失敗）はここで弾く
   let body;
   try {
     body = await request.json();
   } catch {
     return Response.json({ feedback: "リクエストの形式が不正です。Bodyが正しいJSON形式か確認してください。" }, { status: 400 });
   }
-  // bodyが空でないかのチェック
+  // body: null など、JSONとしては妥当だが中身が無いケースのガード
   const { topic, answer, tone } = body ?? {};
 
   // 回答の文字数上限（1000文字）
