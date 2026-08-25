@@ -45,7 +45,7 @@ export default function Home() {
         </select>
       </p>
 
-      {/* サーバー側の文字数上限とフロント側を一致させる */}
+      {/* maxLengthでサーバー側の文字数上限とフロント側を一致させる */}
       <textarea
         maxLength={1000}
         className="outline outline-stone-300 rounded p-2 mt-2 w-full max-w-md"
@@ -64,7 +64,7 @@ export default function Home() {
         </select>
       </div>
 
-      {/* 空回答での送信防止を追加 */}
+      {/* !answer.trim()で空回答での送信防止 */}
       <button
         className="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 mb-7 rounded disabled:bg-gray-400"
         onClick={handleSubmit} disabled={loading || !answer.trim()} style={{ marginTop: 12 }}>
@@ -75,15 +75,15 @@ export default function Home() {
         <div className="pre-wrap text-lg leading-10 w-3xl pt-10 px-10 border-8 border-teal-600/30 bg-olive-50/50">
           <ReactMarkdown
             components={{
-              // 出力のMarkdownの中に<strong>が出てきたら指定した処理を使う
+              // 出力のMarkdownの中に出てきたtagに指定した処理を使う
               strong: ({ children }) => (
                 <strong className="font-bold text-teal-700 block">
                   {children}
                 </strong>
               ),
               p: ({ children }) => (
-                <p className="pb-10">
-                  {children}
+                <p className="even:pb-10">
+                  <span className="nth-of-type-2:border border-b-2 border-dotted border-slate-400 pb-2">{children}</span>
                 </p>
               )
             }}
