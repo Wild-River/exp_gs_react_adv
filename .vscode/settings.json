@@ -1,0 +1,14 @@
+{
+  // Tailwind v4 のエントリ CSS を明示指定（tailwind.config.js が無い / pnpm で自動検出が外れる対策）
+  "tailwindCSS.experimental.configFile": "app/globals.css",
+
+  // className / class 属性内で補完候補を出す
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+
+  // globals.css の @import "tailwindcss" / @theme / @apply を正しく解釈させ、警告も消す
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
