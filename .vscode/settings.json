@@ -1,14 +1,20 @@
 {
-  // Tailwind v4 のエントリ CSS を明示指定（tailwind.config.js が無い / pnpm で自動検出が外れる対策）
-  "tailwindCSS.experimental.configFile": "app/globals.css",
+  // 保存時に自動整形する
+  "editor.formatOnSave": true,
+  // 整形に使うフォーマッタを Prettier 拡張に固定する
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
 
-  // className / class 属性内で補完候補を出す
+  // 文字列の中でも補完候補を出す（className / class 属性内で Tailwind クラスを補完させるため）
   "editor.quickSuggestions": {
     "strings": "on"
   },
 
-  // globals.css の @import "tailwindcss" / @theme / @apply を正しく解釈させ、警告も消す
-  "files.associations": {
-    "*.css": "tailwindcss"
+  // 自動 import のパスを相対パス（../../）ではなく tsconfig の alias（@/...）で書く
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  // ファイルを移動・リネームしたとき、参照している側の import パスを自動で書き換える
+  "js/ts.updateImportsOnFileMove.enabled": "always",
+  "editor.codeActionsOnSave": {
+    // 保存時に、未 import のシンボルの import 文を自動追加する
+    "source.addMissingImports": "explicit"
   }
 }
