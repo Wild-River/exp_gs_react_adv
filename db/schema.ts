@@ -1,6 +1,7 @@
 // src/db/schema.ts
 import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core'
 
+// pnpm exec drizzle-kit pushで実行する
 export const sessions = pgTable('sessions', {
   id: serial('id').primaryKey(), // 通し番号（主キー・自動）
   userId: text('user_id').notNull(), // 誰のデータか
@@ -9,4 +10,5 @@ export const sessions = pgTable('sessions', {
   smileScore: integer('smile_score'), // 笑顔スコア
   feedback: text('feedback'), // AIのフィードバック
   createdAt: timestamp('created_at').defaultNow().notNull(), // 作成日時
+  memo: text('memo'),
 })

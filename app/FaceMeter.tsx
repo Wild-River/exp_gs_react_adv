@@ -74,7 +74,7 @@ export default function FaceMeter({
 
   return (
     <div>
-      <div className="flex justify-center items-center text-center text-lg font-semibold">
+      <div className="flex items-center justify-center text-center text-lg font-semibold">
         <span className="ml-2">今の笑顔率 {smile}%</span>
       </div>
       <video
@@ -82,7 +82,7 @@ export default function FaceMeter({
         autoPlay
         muted
         playsInline
-        className="rounded-2xl mb-4"
+        className="mb-4 rounded-2xl"
       />
     </div>
   )
