@@ -7,6 +7,8 @@ import Link from 'next/link'
 
 // このページは毎回サーバーで作り直す（DBの最新を必ず出すため）
 export const dynamic = 'force-dynamic'
+
+// CSSの出し分け
 const selected =
   'rounded border border-teal-500 bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-600'
 const unselected =
@@ -40,35 +42,53 @@ export default async function HistoryPage({
             <h2 className="mb-4 text-lg font-bold text-gray-900">
               笑顔スコアの記録
             </h2>
-            <div className="flex h-140 items-end gap-1 border-8 border-teal-600/30 px-6 py-6">
-              {[...rows].reverse().map((row) => (
+            <div className="flex h-140 items-end gap-6 border-8 border-teal-600/30 px-6 py-6">
+              {rows.toReversed().map((row) => (
                 <div
                   key={row.id}
-                  title={`${row.smileScore ?? 0}%`}
-                  style={{ height: `${row.smileScore ?? 0}%` }}
-                  className="w-4 rounded-t bg-teal-500 transition-colors hover:bg-teal-600"
-                />
+                  className="flex h-full flex-col items-center gap-1"
+                >
+                  <div className="group relative flex w-4 flex-1 items-end">
+                    <div
+                      style={{ height: `${row.smileScore ?? 0}%` }}
+                      className="relative w-full rounded-t bg-teal-500 hover:bg-teal-600"
+                    >
+                      {/* ホバーで出るツールチップ */}
+                      <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 rounded bg-teal-600 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
+                        {row.smileScore ?? 0}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="font-bold text-gray-900">
+                    {row.createdAt.toLocaleDateString('ja-JP', {
+                      month: 'numeric',
+                      day: 'numeric',
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
             <div className="mt-10 flex justify-between">
               <Link
-                href="/history"
+                href="/"
                 className="font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
               >
                 ← ダッシュボードにもどる
               </Link>
-              <Link
-                href="/history?sort=score"
-                className={isScore ? selected : unselected}
-              >
-                スコア順に並び替える
-              </Link>
-              <Link
-                href="/history?sort=date"
-                className={!isScore ? selected : unselected}
-              >
-                日付順に並び替える
-              </Link>
+              <div className="flex gap-2">
+                <Link
+                  href="/history?sort=score"
+                  className={isScore ? selected : unselected}
+                >
+                  スコア順に並び替える
+                </Link>
+                <Link
+                  href="/history?sort=date"
+                  className={!isScore ? selected : unselected}
+                >
+                  日付順に並び替える
+                </Link>
+              </div>
             </div>
           </aside>
 
@@ -77,7 +97,15 @@ export default async function HistoryPage({
             <div className="space-y-3">
               {rows.map((row) => (
                 <div key={row.id} className="flex justify-between">
-                  <div className="font-bold text-gray-900">▶︎{row.topic}</div>
+                  <div className="flex gap-2 font-bold text-gray-900">
+                    <div className="w-8">
+                      {row.createdAt.toLocaleDateString('ja-JP', {
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
+                    </div>
+                    <div className="">▶︎{row.topic}</div>
+                  </div>
                   <div className="flex gap-2">
                     <DeleteBtn id={row.id} topic={row.topic} />
                     <Link

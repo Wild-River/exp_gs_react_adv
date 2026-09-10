@@ -55,11 +55,13 @@ export default async function HistoryDetail({
             {row.answerText}
           </p>
           {row.memo && (
-            <h2 className="mb-4 text-lg font-bold text-gray-900">メモ</h2>
+            <>
+              <h2 className="mb-4 text-lg font-bold text-gray-900">メモ</h2>
+              <p className="rounded border border-gray-200 px-6 py-6 leading-8 whitespace-pre-wrap">
+                {row.memo}
+              </p>
+            </>
           )}
-          <p className="rounded border border-gray-200 px-6 py-6 leading-8 whitespace-pre-wrap">
-            {row.memo}
-          </p>
         </section>
 
         {/* ── コーチのフィードバック ── */}

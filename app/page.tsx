@@ -237,11 +237,10 @@ export default function Home() {
               </ReactMarkdown>
 
               <div className="flex items-center gap-4">
-                {!audioSrc && (
+                {!audioSrc && !loading && (
                   <button
                     onClick={() => speak(feedback)}
-                    disabled={loading}
-                    className="rounded bg-teal-500 px-4 py-1 font-bold text-white hover:bg-teal-600 disabled:opacity-50"
+                    className="rounded bg-teal-500 px-4 py-1 font-bold text-white hover:bg-teal-600"
                   >
                     🔊 読み上げ
                   </button>
