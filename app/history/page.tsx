@@ -43,30 +43,33 @@ export default async function HistoryPage({
               笑顔スコアの記録
             </h2>
             <div className="flex h-140 items-end gap-6 border-8 border-teal-600/30 px-6 py-6">
-              {rows.toReversed().map((row) => (
-                <div
-                  key={row.id}
-                  className="flex h-full flex-col items-center gap-1"
-                >
-                  <div className="group relative flex w-4 flex-1 items-end">
-                    <div
-                      style={{ height: `${row.smileScore ?? 0}%` }}
-                      className="relative w-full rounded-t bg-teal-500 hover:bg-teal-600"
-                    >
-                      {/* ホバーで出るツールチップ */}
-                      <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 rounded bg-teal-600 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
-                        {row.smileScore ?? 0}%
-                      </span>
+              {rows
+                .slice(0, 12)
+                .toReversed()
+                .map((row) => (
+                  <div
+                    key={row.id}
+                    className="flex h-full flex-col items-center gap-1"
+                  >
+                    <div className="group relative flex w-4 flex-1 items-end">
+                      <div
+                        style={{ height: `${row.smileScore ?? 0}%` }}
+                        className="relative w-full rounded-t bg-teal-500 hover:bg-teal-600"
+                      >
+                        {/* ホバーで出るツールチップ */}
+                        <span className="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 rounded bg-teal-600 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
+                          {row.smileScore ?? 0}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="font-bold text-gray-900">
+                      {row.createdAt.toLocaleDateString('ja-JP', {
+                        month: 'numeric',
+                        day: 'numeric',
+                      })}
                     </div>
                   </div>
-                  <div className="font-bold text-gray-900">
-                    {row.createdAt.toLocaleDateString('ja-JP', {
-                      month: 'numeric',
-                      day: 'numeric',
-                    })}
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
             <div className="mt-10 flex justify-between">
               <Link
