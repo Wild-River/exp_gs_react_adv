@@ -2,6 +2,7 @@
 import { db } from '@/db'
 import { sessions } from '@/db/schema'
 import { desc } from 'drizzle-orm'
+import { auth } from '@clerk/nextjs/server'
 
 // 各項目の文字数上限（text型は無制限なので、サーバー側で必ず上限を設ける）
 const MAX_TOPIC_LENGTH = 100
@@ -11,6 +12,11 @@ const MAX_MEMO_LENGTH = 500
 
 // 一覧を取得（新しい順）
 export async function GET() {
+  const { userId } = await auth()
+  if (!userId) {
+    return Response.json({ error: 'ログインしてください' }, { status: 401 })
+  }
+
   const rows = await db
     .select()
     .from(sessions)
@@ -29,6 +35,11 @@ function parseOptionalText(value: unknown, max: number): string | null | false {
 
 // 1件保存
 export async function POST(request: Request) {
+  const { userId } = await auth()
+  if (!userId) {
+    return Response.json({ error: 'ログインしてください' }, { status: 401 })
+  }
+
   // JSON自体が壊れている場合（parseに失敗）はここで弾く
   let body
   try {
@@ -99,8 +110,6 @@ export async function POST(request: Request) {
     }
     smileScore = Math.round(avgSmile) // 小数で送られても整数カラムに収まるようにする
   }
-
-  const userId = 'demo' // ← Day4で本物のログインidに置きかえる
 
   // DB接続や制約違反で失敗しうるのでtry/catchで囲む
   try {

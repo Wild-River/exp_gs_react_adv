@@ -1,15 +1,48 @@
+// app/layout.tsx
 import type { Metadata } from 'next'
 import './globals.css'
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 export const metadata: Metadata = {
-  title: 'プレゼン&就活面接 AIコーチ',
-  description: 'あなたのプレゼンをAIがコーチング',
+  title: 'AI練習コーチ',
+  description: '表情・音声・AIで練習するコーチ',
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="ja" className="h-full antialiased">
-      <body className="flex min-h-full flex-col">{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="ja">
+        <body>
+          <header
+            style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 8,
+              padding: 12,
+            }}
+          >
+            <SignedOut>
+              <SignInButton />
+              <SignUpButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </header>
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

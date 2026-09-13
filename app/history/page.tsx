@@ -2,8 +2,9 @@
 import DeleteBtn from '@/app/DeleteBtn'
 import { db } from '@/db'
 import { sessions } from '@/db/schema'
-import { desc } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import Link from 'next/link'
+import { auth } from '@clerk/nextjs/server'
 
 // このページは毎回サーバーで作り直す（DBの最新を必ず出すため）
 export const dynamic = 'force-dynamic'
@@ -19,11 +20,25 @@ export default async function HistoryPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  // ① まず未ログインを弾く（他のAPIと同じ思想＝ログインしていない人は入れない）
+  const { userId } = await auth()
+  if (!userId) {
+    return (
+      <main className="p-8">
+        <p>履歴を見るにはログインしてください。</p>
+      </main>
+    )
+  }
   const { sort } = await searchParams
   const isScore = sort === 'score'
   const sortRule = isScore ? sessions.smileScore : sessions.createdAt
 
-  const rows = await db.select().from(sessions).orderBy(desc(sortRule))
+  // ② 一覧は"自分のだけ"（userId 一致）・新しい順
+  const rows = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.userId, userId))
+    .orderBy(desc(sortRule))
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
