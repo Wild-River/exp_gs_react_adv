@@ -1,20 +1,32 @@
 // app/history/[id]/page.tsx
 import { db } from '@/db'
 import { sessions } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
+import { auth } from '@clerk/nextjs/server'
 
 export default async function HistoryDetail({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  // ① まず未ログインを弾く
+  const { userId } = await auth()
+  if (!userId) {
+    return (
+      <main className="p-8">
+        <p>履歴を見るにはログインしてください。</p>
+      </main>
+    )
+  }
+
+  // ② 自分の記録だけを取得（他人のidを直接指定されても見せない）
   const { id } = await params
   const rows = await db
     .select()
     .from(sessions)
-    .where(eq(sessions.id, Number(id)))
+    .where(and(eq(sessions.id, Number(id)), eq(sessions.userId, userId)))
   const row = rows[0]
 
   if (!row) {

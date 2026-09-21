@@ -16,5 +16,9 @@
   "editor.codeActionsOnSave": {
     // 保存時に、未 import のシンボルの import 文を自動追加する
     "source.addMissingImports": "explicit"
+  },
+  // .css を Tailwind CSS 用の言語モードで開く（@plugin / @theme などを認識させる）
+  "files.associations": {
+    "*.css": "tailwindcss"
   }
 }

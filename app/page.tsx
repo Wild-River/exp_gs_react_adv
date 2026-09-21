@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import FaceMeter from './FaceMeter'
 import Recorder from './Recorder'
 import Link from 'next/link'
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 
 export default function Home() {
   const [answer, setAnswer] = useState('')
@@ -34,7 +35,11 @@ export default function Home() {
       setAudioSrc('data:audio/mp3;base64,' + data.audio)
     } catch (e) {
       console.error(e)
-      alert('読み上げに失敗しました。もう一度お試しください。')
+      alert(
+        e instanceof Error
+          ? e.message
+          : '保存に失敗しました。もう一度お試しください。',
+      )
     }
   }
 
@@ -98,23 +103,36 @@ export default function Home() {
       alert('保存しました')
     } catch (e) {
       console.error(e)
-      alert('保存に失敗しました。もう一度お試しください。')
+      alert(
+        e instanceof Error
+          ? e.message
+          : '保存に失敗しました。もう一度お試しください。',
+      )
     } finally {
       setSaving(false)
     }
   }
 
   async function deliver() {
-    const res = await fetch('/api/deliver', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ feedback }),
-    })
-    if (res.ok) alert('メールを送りました')
-    else
+    try {
+      const res = await fetch('/api/deliver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback }),
+      })
+      const data = await res.json().catch(() => null) // 本文がJSONでないケースに備える
+      if (!res.ok) {
+        throw new Error(data?.error ?? `deliver ${res.status}`)
+      }
+      alert('メールを送りました')
+    } catch (e) {
+      console.error(e)
       alert(
-        'メール送信に失敗しました（無料枠では自分の登録メール宛のみ送れます）',
+        e instanceof Error
+          ? e.message
+          : 'メール送信に失敗しました（無料枠では自分の登録メール宛のみ送れます）',
       )
+    }
   }
 
   return (
@@ -259,20 +277,30 @@ export default function Home() {
                   </button>
                 )}
                 {audioSrc && <audio src={audioSrc} controls />}
-                <button
-                  onClick={save}
-                  className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
-                  disabled={saving}
-                >
-                  💾 保存する
-                </button>
-                <button
-                  onClick={deliver}
-                  className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
-                >
-                  ✉ メールで受け取る
-                </button>
               </div>
+              <SignedIn>
+                <div className="mt-4 flex items-center gap-4">
+                  <button
+                    onClick={save}
+                    className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
+                    disabled={saving}
+                  >
+                    💾 保存する
+                  </button>
+                  <button
+                    onClick={deliver}
+                    className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
+                  >
+                    ✉ メールで受け取る
+                  </button>
+                </div>
+              </SignedIn>
+              <SignedOut>
+                <p>練習を保存・メールで受け取るには、ログインしてください。</p>
+                <SignInButton>
+                  <button>ログインする</button>
+                </SignInButton>
+              </SignedOut>
             </div>
           )}
         </section>

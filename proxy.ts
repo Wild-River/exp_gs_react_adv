@@ -1,12 +1,14 @@
-// proxy.ts
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
 export default clerkMiddleware()
 
 export const config = {
   matcher: [
-    // _next や 画像など以外のすべてに通す（Clerk公式の既定）
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpg|jpeg|gif|png|svg|ico|webp|woff2?|ttf|otf|eot|map)).*)',
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
     '/(api|trpc)(.*)',
+    // Always run for Clerk-specific frontend API routes
+    '/__clerk/(.*)',
   ],
 }
