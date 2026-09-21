@@ -11,8 +11,8 @@ import {
 } from '@clerk/nextjs'
 
 export const metadata: Metadata = {
-  title: 'AI練習コーチ',
-  description: '表情・音声・AIで練習するコーチ',
+  title: 'プレゼン&就活面接 AIコーチ',
+  description: 'あなたのプレゼンをAIがコーチング',
 }
 
 export default function RootLayout({
@@ -22,8 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="ja">
-        <body>
+      <html lang="ja" className="h-full antialiased">
+        <body className="flex min-h-full flex-col">
           <header
             style={{
               display: 'flex',

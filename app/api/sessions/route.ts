@@ -1,7 +1,7 @@
 // app/api/sessions/route.ts
 import { db } from '@/db'
 import { sessions } from '@/db/schema'
-import { desc } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { auth } from '@clerk/nextjs/server'
 
 // 各項目の文字数上限（text型は無制限なので、サーバー側で必ず上限を設ける）
@@ -20,6 +20,7 @@ export async function GET() {
   const rows = await db
     .select()
     .from(sessions)
+    .where(eq(sessions.userId, userId))
     .orderBy(desc(sessions.createdAt))
   return Response.json(rows)
 }
