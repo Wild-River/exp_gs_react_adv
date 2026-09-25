@@ -1,5 +1,41 @@
 @import 'tailwindcss';
-@plugin "daisyui";
+/* OSのダークモードに引きずられないよう、light テーマだけを有効にする */
+@plugin 'daisyui' {
+  themes: light --default;
+}
+
+/* 標準の light テーマをベースに、ボタンの色を元の Tailwind の色に合わせる */
+@plugin 'daisyui/theme' {
+  name: 'light';
+  default: true;
+  /* primary = teal-500（文字は白）: メインのボタン・枠線ボタン */
+  --color-primary: oklch(70.4% 0.14 182.503);
+  --color-primary-content: oklch(100% 0 0);
+  /* success = teal-500（文字は白）: 成功の toast */
+  --color-success: oklch(70.4% 0.14 182.503);
+  --color-success-content: oklch(100% 0 0);
+  /* warning = yellow-500（文字は白）: 録音する・削除 */
+  --color-warning: oklch(79.5% 0.184 86.047);
+  --color-warning-content: oklch(100% 0 0);
+  /* 立体感をなくす：ボタンの下の影などを消す */
+  --depth: 0;
+}
+
+/* フォーカス時の二重線（border ＋ 離れた outline）をやめ、枠線の色だけで示す */
+/* select は選択肢を開いている間（:open）も outline が出るので一緒に打ち消す */
+/* ※ :is() の中なら、:open 未対応のブラウザでもルール全体が無効にならない */
+@layer utilities {
+  :is(.input, .select, .textarea):is(:focus, :focus-within, :open) {
+    --input-color: var(--color-primary);
+    outline: none;
+  }
+
+  /* 塗りボタンの縁の線を消す（縁を透明にして、背景色をそのまま見せる） */
+  /* 枠線が見た目の一部である outline / dash / soft / ghost / link は対象外 */
+  .btn:not(.btn-outline, .btn-dash, .btn-soft, .btn-ghost, .btn-link) {
+    --btn-border: #0000;
+  }
+}
 
 :root {
   --background: #ffffff;
@@ -12,7 +48,6 @@
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }

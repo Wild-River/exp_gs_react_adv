@@ -10,10 +10,8 @@ import { auth } from '@clerk/nextjs/server'
 export const dynamic = 'force-dynamic'
 
 // CSSの出し分け
-const selected =
-  'rounded border border-teal-500 bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-600'
-const unselected =
-  'hover:bg-teal-500 rounded border border-teal-500 bg-white px-4 py-2 font-bold text-teal-500 hover:bg-teal-500 hover:text-white'
+const selected = 'btn btn-primary'
+const unselected = 'btn btn-outline btn-primary'
 
 export default async function HistoryPage({
   searchParams,
@@ -42,21 +40,14 @@ export default async function HistoryPage({
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="border-b border-gray-200 pb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-        練習の記録（{rows.length}件）
-      </h1>
-
       {rows.length === 0 ? (
-        <p className="mt-10 text-lg text-gray-500">
+        <p className="text-lg text-gray-500">
           まだありません。練習して「保存」しましょう。
         </p>
       ) : (
-        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           {/* ── 成長グラフ ── */}
           <aside className="lg:sticky lg:top-8 lg:col-span-7 lg:self-start">
-            <h2 className="mb-4 text-lg font-bold text-gray-900">
-              笑顔スコアの記録
-            </h2>
             <div className="flex h-140 items-end gap-6 border-8 border-teal-600/30 px-6 py-6">
               {rows
                 .slice(0, 12)
@@ -91,7 +82,7 @@ export default async function HistoryPage({
                 href="/"
                 className="font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
               >
-                ← ダッシュボードにもどる
+                ← ホームにもどる
               </Link>
               <div className="flex gap-2">
                 <Link
@@ -128,7 +119,7 @@ export default async function HistoryPage({
                     <DeleteBtn id={row.id} topic={row.topic} />
                     <Link
                       href={`/history/${row.id}`}
-                      className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
+                      className="btn btn-primary"
                     >
                       詳細を見る
                     </Link>

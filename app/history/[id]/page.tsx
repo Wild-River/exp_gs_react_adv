@@ -35,7 +35,7 @@ export default async function HistoryDetail({
         <p className="text-lg text-gray-500">見つかりませんでした。</p>
         <Link
           href="/history"
-          className="mt-6 inline-block font-bold text-teal-700 hover:text-teal-800 hover:underline"
+          className="mt-6 inline-block font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
         >
           ← 練習の記録にもどる
         </Link>

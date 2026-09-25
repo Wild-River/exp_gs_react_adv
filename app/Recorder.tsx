@@ -74,9 +74,9 @@ export default function Recorder({
   return (
     <button
       onClick={recording ? stopRec : startRec}
-      className="block rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-400 disabled:opacity-50"
+      className="btn btn-warning"
     >
-      {recording ? '文字起こし' : '🎤 録音する'}
+      {recording ? '文字起こし' : '録音する'}
     </button>
   )
 }

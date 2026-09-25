@@ -2,6 +2,7 @@
 // src/app/FaceMeter.tsx
 
 import { useEffect, useRef, useState } from 'react'
+import { useToast } from './Toast'
 
 export default function FaceMeter({
   onScore,
@@ -10,6 +11,7 @@ export default function FaceMeter({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [smile, setSmile] = useState(0)
+  const showToast = useToast()
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>
@@ -38,8 +40,9 @@ export default function FaceMeter({
         }
       } catch (e) {
         console.error(e)
-        alert(
+        showToast(
           'カメラを使えませんでした。ブラウザのアドレスバーでカメラを『許可』してから、ページを再読み込みしてください。',
+          'error',
         )
         return
       }
@@ -70,7 +73,8 @@ export default function FaceMeter({
       stream?.getTracks().forEach((t) => t.stop()) // 片付け③ ページを離れたらカメラを止める
     }
     // []の中にonScoreは書かない。onScore={(n) => setSmileScore(n)にすると毎回カメラが再起動するので注意）
-  }, [])
+    // showToast は useCallback で固定された関数なので、入れても再実行されない
+  }, [showToast])
 
   return (
     <div>

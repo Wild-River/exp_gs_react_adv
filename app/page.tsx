@@ -7,8 +7,10 @@ import FaceMeter from './FaceMeter'
 import Recorder from './Recorder'
 import Link from 'next/link'
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
+import { useToast } from './Toast'
 
 export default function Home() {
+  const showToast = useToast()
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,10 +37,11 @@ export default function Home() {
       setAudioSrc('data:audio/mp3;base64,' + data.audio)
     } catch (e) {
       console.error(e)
-      alert(
+      showToast(
         e instanceof Error
           ? e.message
-          : '保存に失敗しました。もう一度お試しください。',
+          : '読み上げに失敗しました。もう一度お試しください。',
+        'error',
       )
     }
   }
@@ -100,13 +103,14 @@ export default function Home() {
       if (!res.ok) {
         throw new Error(data?.error ?? `sessions ${res.status}`)
       }
-      alert('保存しました')
+      showToast('保存しました', 'success')
     } catch (e) {
       console.error(e)
-      alert(
+      showToast(
         e instanceof Error
           ? e.message
           : '保存に失敗しました。もう一度お試しください。',
+        'error',
       )
     } finally {
       setSaving(false)
@@ -124,24 +128,21 @@ export default function Home() {
       if (!res.ok) {
         throw new Error(data?.error ?? `deliver ${res.status}`)
       }
-      alert('メールを送りました')
+      showToast('メールを送りました', 'success')
     } catch (e) {
       console.error(e)
-      alert(
+      showToast(
         e instanceof Error
           ? e.message
           : 'メール送信に失敗しました（無料枠では自分の登録メール宛のみ送れます）',
+        'error',
       )
     }
   }
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="border-b border-gray-200 pb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-        プレゼン&就活面接 AIコーチ
-      </h1>
-
-      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
         {/* ── 左：操作パネル ── */}
         <aside className="space-y-5 lg:sticky lg:top-8 lg:col-span-5 lg:self-start">
           <div className="flex flex-wrap gap-x-6 gap-y-3">
@@ -150,7 +151,7 @@ export default function Home() {
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="ml-2 rounded p-2 outline outline-stone-300"
+                className="select ml-2 w-auto"
               >
                 <option value="自己紹介を1分で">自己紹介を1分で</option>
                 <option value="志望動機">志望動機</option>
@@ -163,7 +164,7 @@ export default function Home() {
               <select
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
-                className="ml-2 rounded p-2 outline outline-stone-300"
+                className="select ml-2 w-auto"
               >
                 <option value="やさしめ">やさしめ</option>
                 <option value="スパルタ">スパルタ</option>
@@ -179,7 +180,7 @@ export default function Home() {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               placeholder="ここに回答を入力"
-              className="w-full rounded p-3 outline outline-stone-300"
+              className="textarea w-full"
             />
             <div className="text-right text-sm text-gray-500">
               {answer.length} / 1000文字
@@ -196,7 +197,7 @@ export default function Home() {
             <button
               onClick={handleSubmit}
               disabled={loading || !answer.trim()}
-              className="rounded bg-teal-500 px-4 py-2 font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
+              className="btn btn-primary"
             >
               {loading ? '生成中…' : 'コーチに見てもらう'}
             </button>
@@ -206,7 +207,7 @@ export default function Home() {
                 setFeedback('')
                 setAudioSrc(null)
               }}
-              className="rounded border border-teal-500 bg-white px-4 py-2 font-bold text-teal-500 hover:bg-teal-500 hover:text-white"
+              className="btn btn-outline btn-primary"
             >
               クリア
             </button>
@@ -226,7 +227,7 @@ export default function Home() {
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            className="w-full rounded p-3 outline outline-stone-300"
+            className="textarea w-full"
             placeholder="ここにメモを残す"
           />
           <div className="mt-10">
@@ -271,7 +272,7 @@ export default function Home() {
                 {!audioSrc && !loading && (
                   <button
                     onClick={() => speak(feedback)}
-                    className="rounded bg-teal-500 px-4 py-1 font-bold text-white hover:bg-teal-600"
+                    className="btn btn-primary btn-sm"
                   >
                     🔊 読み上げ
                   </button>
@@ -282,15 +283,12 @@ export default function Home() {
                 <div className="mt-4 flex items-center gap-4">
                   <button
                     onClick={save}
-                    className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
+                    className="btn btn-primary"
                     disabled={saving}
                   >
                     💾 保存する
                   </button>
-                  <button
-                    onClick={deliver}
-                    className="rounded bg-teal-500 px-4 py-2 leading-normal font-bold text-white hover:bg-teal-600 disabled:bg-gray-400"
-                  >
+                  <button onClick={deliver} className="btn btn-primary">
                     ✉ メールで受け取る
                   </button>
                 </div>
@@ -298,7 +296,7 @@ export default function Home() {
               <SignedOut>
                 <p>練習を保存・メールで受け取るには、ログインしてください。</p>
                 <SignInButton>
-                  <button>ログインする</button>
+                  <button className="btn mt-2 btn-primary">ログインする</button>
                 </SignInButton>
               </SignedOut>
             </div>
