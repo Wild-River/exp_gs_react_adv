@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import { auth } from '@clerk/nextjs/server'
+import ShareBtn from '@/app/ShareBtn'
 
 export default async function HistoryDetail({
   params,
@@ -22,11 +23,15 @@ export default async function HistoryDetail({
   }
 
   // ② 自分の記録だけを取得（他人のidを直接指定されても見せない）
+  // idが数字でないときにDBへ問い合わせると500になるので、先に確認する
   const { id } = await params
-  const rows = await db
-    .select()
-    .from(sessions)
-    .where(and(eq(sessions.id, Number(id)), eq(sessions.userId, userId)))
+  const sessionId = Number(id)
+  const rows = Number.isInteger(sessionId)
+    ? await db
+        .select()
+        .from(sessions)
+        .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
+    : []
   const row = rows[0]
 
   if (!row) {
@@ -98,16 +103,20 @@ export default async function HistoryDetail({
             >
               {row.feedback}
             </ReactMarkdown>
+            {/* 共有リンクの発行・コピー・停止 */}
+            <ShareBtn id={row.id} shareId={row.shareId} />
           </div>
         </section>
       </div>
 
-      <Link
-        href="/history"
-        className="font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
-      >
-        ← 練習の記録にもどる
-      </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <Link
+          href="/history"
+          className="font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
+        >
+          ← 練習の記録にもどる
+        </Link>
+      </div>
     </main>
   )
 }

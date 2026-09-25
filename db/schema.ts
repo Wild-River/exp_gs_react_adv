@@ -11,4 +11,7 @@ export const sessions = pgTable('sessions', {
   feedback: text('feedback'), // AIのフィードバック
   createdAt: timestamp('created_at').defaultNow().notNull(), // 作成日時
   memo: text('memo'),
+  // 共有用のトークン。null なら非公開＝/share では見られない
+  // 連番のidと違って推測できないので、リンクを知っている人だけが開ける
+  shareId: text('share_id').unique(),
 })

@@ -274,7 +274,7 @@ export default function Home() {
                     onClick={() => speak(feedback)}
                     className="btn btn-primary btn-sm"
                   >
-                    🔊 読み上げ
+                    読み上げ
                   </button>
                 )}
                 {audioSrc && <audio src={audioSrc} controls />}
@@ -286,10 +286,10 @@ export default function Home() {
                     className="btn btn-primary"
                     disabled={saving}
                   >
-                    💾 保存する
+                    保存する
                   </button>
                   <button onClick={deliver} className="btn btn-primary">
-                    ✉ メールで受け取る
+                    メールで受け取る
                   </button>
                 </div>
               </SignedIn>
