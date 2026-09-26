@@ -3,10 +3,10 @@
 import { db } from '@/db'
 import { sessions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import type { Metadata } from 'next'
+import SpokenTime from '@/app/SpokenTime'
 
 // トークンで1件だけ取得する。共有をやめた記録は shareId が null なので見つからない
 async function getSession(token: string) {
@@ -59,6 +59,11 @@ export default async function SharePage({
         </span>
         笑顔スコア {row.smileScore ?? 0}%
       </div>
+      <SpokenTime
+        durationSec={row.durationSec}
+        limitSec={row.limitSec}
+        className="mt-6"
+      />
 
       <div className="mt-10 border-8 border-teal-600/30 px-10 py-10 text-lg leading-10">
         <ReactMarkdown

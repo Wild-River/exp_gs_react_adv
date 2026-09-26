@@ -35,6 +35,12 @@
   .btn:not(.btn-outline, .btn-dash, .btn-soft, .btn-ghost, .btn-link) {
     --btn-border: #0000;
   }
+
+  /* ボタンの文字を見やすい大きさ（1rem = 16px）にそろえる。標準は 0.875rem、btn-lg は 1.125rem */
+  /* 高さは変えず文字だけそろえる。小さく見せたい btn-xs / btn-sm は対象外 */
+  .btn:not(.btn-xs, .btn-sm) {
+    --fontsize: 1rem;
+  }
 }
 
 :root {

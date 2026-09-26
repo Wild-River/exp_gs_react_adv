@@ -1,7 +1,7 @@
 'use client'
 // src/app/FaceMeter.tsx
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { useToast } from './Toast'
 
 export default function FaceMeter({
@@ -12,6 +12,10 @@ export default function FaceMeter({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [smile, setSmile] = useState(0)
   const showToast = useToast()
+
+  // useEffect の中から「いちばん新しい onScore」を呼ぶための関数（React 19.2 の useEffectEvent）
+  // これ自体は依存配列に入れなくてよいので、親が onScore を作り直してもカメラは再起動しない
+  const reportScore = useEffectEvent((n: number) => onScore(n))
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>
@@ -59,7 +63,7 @@ export default function FaceMeter({
         if (result) {
           const happy = Math.round(result.expressions.happy * 100)
           setSmile(happy)
-          onScore(happy) // onScore(happy)を実行すると、実体はsetSmileScore(happy)なので、親のstateが更新される
+          reportScore(happy) // 親から渡された onScore(happy) が呼ばれ、親のstateが更新される
         }
       }, 500)
     }
@@ -72,7 +76,7 @@ export default function FaceMeter({
       clearInterval(timer) // 片付け② 0.5秒ごとの測定を止める
       stream?.getTracks().forEach((t) => t.stop()) // 片付け③ ページを離れたらカメラを止める
     }
-    // []の中にonScoreは書かない。onScore={(n) => setSmileScore(n)にすると毎回カメラが再起動するので注意）
+    // onScore は reportScore（useEffectEvent）経由で呼ぶので、依存配列に入れない
     // showToast は useCallback で固定された関数なので、入れても再実行されない
   }, [showToast])
 

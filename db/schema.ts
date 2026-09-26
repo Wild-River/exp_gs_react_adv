@@ -14,4 +14,8 @@ export const sessions = pgTable('sessions', {
   // 共有用のトークン。null なら非公開＝/share では見られない
   // 連番のidと違って推測できないので、リンクを知っている人だけが開ける
   shareId: text('share_id').unique(),
+  durationSec: integer('duration_sec'), // 話した時間（秒）。null は計測なし
+  // 保存した時点の目安時間（秒）。null は制限なし
+  // practice.ts の秒数をあとで変えても、過去の記録は当時の目安で判定できるように残しておく
+  limitSec: integer('limit_sec'),
 })

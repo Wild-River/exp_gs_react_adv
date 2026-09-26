@@ -6,6 +6,10 @@ import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import { auth } from '@clerk/nextjs/server'
 import ShareBtn from '@/app/ShareBtn'
+import SpokenTime from '@/app/SpokenTime'
+import FeedbackActions from '@/app/FeedbackActions'
+import Breadcrumbs from '@/app/Breadcrumbs'
+import { coachAudioFileName } from '@/app/practice'
 
 export default async function HistoryDetail({
   params,
@@ -48,9 +52,27 @@ export default async function HistoryDetail({
     )
   }
 
+  // 音声を保存するときのファイル名（練習画面と同じ付け方）
+  const downloadName = coachAudioFileName(row.topic, row.createdAt)
+
+  // パンくずに出す日付（サーバーはUTCで動くことがあるので日本時間で出す）
+  const date = row.createdAt.toLocaleDateString('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: 'numeric',
+    day: 'numeric',
+  })
+
   return (
-    <main className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="mt-4 border-b border-gray-200 pb-6 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* パンくず：今いる場所と、戻り先（ホーム・練習の記録）を上に出す */}
+      <Breadcrumbs
+        items={[
+          { label: 'ホーム', href: '/' },
+          { label: '練習の記録', href: '/history' },
+          { label: `${row.topic}（${date}）` },
+        ]}
+      />
+      <h1 className="mt-2 border-b border-gray-200 pb-4 text-3xl font-bold tracking-tight text-gray-900">
         {row.topic}
       </h1>
 
@@ -67,6 +89,11 @@ export default async function HistoryDetail({
             </span>
             笑顔スコア {row.smileScore ?? 0}%
           </div>
+          <SpokenTime
+            durationSec={row.durationSec}
+            limitSec={row.limitSec}
+            className="mb-10"
+          />
           <h2 className="mb-4 text-lg font-bold text-gray-900">あなたの回答</h2>
           <p className="mb-10 rounded border border-gray-200 px-6 py-6 leading-8 whitespace-pre-wrap">
             {row.answerText}
@@ -79,6 +106,16 @@ export default async function HistoryDetail({
               </p>
             </>
           )}
+
+          {/* 次にやること：同じお題で練習し直す（ホームはURLの ?topic= でお題を選んだ状態で開く） */}
+          <div className="mt-12 flex justify-start">
+            <Link
+              href={{ pathname: '/', query: { topic: row.topic } }}
+              className="btn btn-lg btn-primary"
+            >
+              このお題でもう一度練習する
+            </Link>
+          </div>
         </section>
 
         {/* ── コーチのフィードバック ── */}
@@ -103,19 +140,17 @@ export default async function HistoryDetail({
             >
               {row.feedback}
             </ReactMarkdown>
-            {/* 共有リンクの発行・コピー・停止 */}
-            <ShareBtn id={row.id} shareId={row.shareId} />
+            {/* 1段目：読み上げ・音声の保存（講評がある記録だけ）／2段目：メール送信・共有 */}
+            <FeedbackActions
+              id={row.id}
+              feedback={row.feedback}
+              downloadName={downloadName}
+            >
+              {/* 共有リンクの発行・コピー・停止 */}
+              <ShareBtn id={row.id} shareId={row.shareId} />
+            </FeedbackActions>
           </div>
         </section>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Link
-          href="/history"
-          className="font-bold text-teal-600 hover:text-teal-700 hover:opacity-70"
-        >
-          ← 練習の記録にもどる
-        </Link>
       </div>
     </main>
   )
