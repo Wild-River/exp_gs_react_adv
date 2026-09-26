@@ -1,14 +1,15 @@
 // app/history/[id]/page.tsx
 import { db } from '@/db'
-import { sessions } from '@/db/schema'
-import { and, eq } from 'drizzle-orm'
+import { judgeTurns, sessions } from '@/db/schema'
+import { and, asc, eq } from 'drizzle-orm'
 import Link from 'next/link'
-import ReactMarkdown from 'react-markdown'
+import CoachFeedbackText from '@/app/CoachFeedbackText'
 import { auth } from '@clerk/nextjs/server'
 import ShareBtn from '@/app/ShareBtn'
 import SpokenTime from '@/app/SpokenTime'
 import FeedbackActions from '@/app/FeedbackActions'
 import Breadcrumbs from '@/app/Breadcrumbs'
+import JudgeChat from '@/app/JudgeChat'
 import { coachAudioFileName } from '@/app/practice'
 
 export default async function HistoryDetail({
@@ -52,8 +53,25 @@ export default async function HistoryDetail({
     )
   }
 
+  // AIコーチとのやりとり（この記録が本人のものだと確かめたあとに読む）
+  const judgeTurnRows = await db
+    .select({
+      turnNo: judgeTurns.turnNo,
+      question: judgeTurns.question,
+      answerText: judgeTurns.answerText,
+      review: judgeTurns.review,
+    })
+    .from(judgeTurns)
+    .where(eq(judgeTurns.sessionId, row.id))
+    .orderBy(asc(judgeTurns.turnNo))
+
   // 音声を保存するときのファイル名（練習画面と同じ付け方）
   const downloadName = coachAudioFileName(row.topic, row.createdAt)
+  const summaryDownloadName = coachAudioFileName(
+    row.topic,
+    row.createdAt,
+    '総評',
+  )
 
   // パンくずに出す日付（サーバーはUTCで動くことがあるので日本時間で出す）
   const date = row.createdAt.toLocaleDateString('ja-JP', {
@@ -121,34 +139,41 @@ export default async function HistoryDetail({
         {/* ── コーチのフィードバック ── */}
         <section className="lg:col-span-7">
           <div className="border-8 border-teal-600/30 px-10 py-10 text-lg leading-10">
-            <ReactMarkdown
-              components={{
-                // 出力のMarkdownの中に出てきたtagに指定した処理を使う
-                strong: ({ children }) => (
-                  <strong className="block font-bold text-teal-700">
-                    {children}
-                  </strong>
-                ),
-                p: ({ children }) => (
-                  <p className="even:pb-10">
-                    <span className="border-b-2 border-dotted border-slate-400 pb-2 nth-[2]:border">
-                      {children}
-                    </span>
-                  </p>
-                ),
-              }}
-            >
-              {row.feedback}
-            </ReactMarkdown>
-            {/* 1段目：読み上げ・音声の保存（講評がある記録だけ）／2段目：メール送信・共有 */}
-            <FeedbackActions
-              id={row.id}
-              feedback={row.feedback}
-              downloadName={downloadName}
-            >
-              {/* 共有リンクの発行・コピー・停止 */}
-              <ShareBtn id={row.id} shareId={row.shareId} />
-            </FeedbackActions>
+            <CoachFeedbackText>{row.feedback ?? ''}</CoachFeedbackText>
+            {/* 1段目：読み上げ・音声の保存（講評がある記録だけ）／2段目：メール送信・共有
+                質疑応答を終えた記録では、これらは総評の下に置くので、ここには出さない */}
+            {!row.judgeSummary && (
+              <FeedbackActions
+                id={row.id}
+                feedback={row.feedback}
+                downloadName={downloadName}
+              >
+                {/* 共有リンクの発行・コピー・停止 */}
+                <ShareBtn id={row.id} shareId={row.shareId} />
+              </FeedbackActions>
+            )}
+
+            {/* AIコーチとのやりとり（質疑応答をした記録だけ。見返すだけで、続きはできない）
+                コーチの講評と同じカードの中に、区切り線を挟んで続ける
+                カードの広い行間（leading-10）が吹き出しに効かないよう、ここだけ標準の行間に戻す */}
+            {judgeTurnRows.length > 0 && (
+              <div className="mt-10 border-t border-gray-200 pt-8 leading-normal">
+                <h2 className="mb-6 text-xl font-bold text-teal-700">
+                  AIコーチとの質疑応答
+                </h2>
+                <JudgeChat turns={judgeTurnRows} summary={row.judgeSummary} />
+                {/* 総評の読み上げ・音声の保存・メール送信（質疑応答と総評も送る）・共有 */}
+                {row.judgeSummary && (
+                  <FeedbackActions
+                    id={row.id}
+                    feedback={row.judgeSummary}
+                    downloadName={summaryDownloadName}
+                  >
+                    <ShareBtn id={row.id} shareId={row.shareId} />
+                  </FeedbackActions>
+                )}
+              </div>
+            )}
           </div>
         </section>
       </div>

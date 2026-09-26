@@ -1,8 +1,8 @@
 // app/api/sessions/[id]/deliver/route.ts
 // 保存済みの記録をメールで送る。画面からは id だけを受け取り、中身はDBから読む（書き換えた文章を送らせない）
 import { db } from '@/db'
-import { sessions } from '@/db/schema'
-import { and, eq } from 'drizzle-orm'
+import { judgeTurns, sessions } from '@/db/schema'
+import { and, asc, eq } from 'drizzle-orm'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { formatSeconds } from '@/app/practice'
 import { escapeHtml, sendReportMail, toEmailHtml } from '@/app/reportMail'
@@ -66,6 +66,28 @@ export async function POST(
         ? formatSeconds(row.durationSec)
         : `${formatSeconds(row.durationSec)}（目安 ${formatSeconds(row.limitSec)}）`
 
+  // 質疑応答を終えた記録では、やりとりと総評も送る（途中で止まっている記録には付けない）
+  let judgeHtml = ''
+  if (row.judgeSummary) {
+    const turns = await db
+      .select()
+      .from(judgeTurns)
+      .where(eq(judgeTurns.sessionId, row.id))
+      .orderBy(asc(judgeTurns.turnNo))
+    const turnsHtml = turns
+      .map(
+        (t) => `
+        <p style="margin: 0 0 4px; line-height: 1.8;"><strong>質問${t.turnNo}：</strong>${escapeHtml(t.question)}</p>
+        <p style="margin: 0 0 16px; line-height: 1.8;">あなた：${escapeHtml(t.answerText ?? '').replaceAll('\n', '<br>')}</p>`,
+      )
+      .join('')
+    judgeHtml = `
+      <h3>AIコーチとの質疑応答</h3>
+      ${turnsHtml}
+      <h3>コーチからの総評</h3>
+      ${toEmailHtml(row.judgeSummary)}`
+  }
+
   const html = `
     <h2>${escapeHtml(row.topic)}（${date}）</h2>
     <p style="margin: 0 0 4px;">笑顔スコア：${row.smileScore === null ? '計測なし' : `${row.smileScore}%`}</p>
@@ -77,6 +99,7 @@ export async function POST(
         ? `<h3>あなたの回答</h3><p style="margin: 0 0 16px; line-height: 1.8;">${escapeHtml(row.answerText).replaceAll('\n', '<br>')}</p>`
         : ''
     }
+    ${judgeHtml}
     <p style="margin: 24px 0 4px;"><a href="${detailUrl}">詳細ページで見る</a>（ログインが必要です）</p>
     ${shareUrl ? `<p style="margin: 0;"><a href="${shareUrl}">共有リンク</a>（ログインなしで見られます）</p>` : ''}
   `

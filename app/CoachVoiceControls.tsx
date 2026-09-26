@@ -49,7 +49,8 @@ export function VoiceDownloadButton({
 }) {
   if (!audioSrc) return null
   return (
-    <button onClick={onDownload} className="btn btn-outline btn-primary">
+    // 色は「録音する」ボタンとそろえて黄色（warning）
+    <button onClick={onDownload} className="btn btn-warning">
       音声をダウンロード
     </button>
   )

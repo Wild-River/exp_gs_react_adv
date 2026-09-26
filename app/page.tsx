@@ -2,7 +2,7 @@
 // src/app/page.tsx
 
 import { useState, useRef, useCallback, useEffect, use } from 'react'
-import ReactMarkdown from 'react-markdown'
+import CoachFeedbackText from './CoachFeedbackText'
 import FaceMeter from './FaceMeter'
 import Recorder, { type RecorderPhase } from './Recorder'
 import RecordingTimer from './RecordingTimer'
@@ -11,14 +11,17 @@ import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
 import { useToast } from './Toast'
 import {
   TOPICS,
+  STRICTNESS_LEVELS,
   MAX_ANSWER_LENGTH,
   MAX_MEMO_LENGTH,
+  JUDGE_QUESTION_COUNT,
   coachAudioFileName,
   findLimitSec,
 } from './practice'
 import { useCoachVoice } from './useCoachVoice'
 import { CoachVoicePlayer, VoiceDownloadButton } from './CoachVoiceControls'
 import MailButton from './MailButton'
+import JudgePanel from './JudgePanel'
 
 export default function Home({
   searchParams,
@@ -29,7 +32,7 @@ export default function Home({
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
   const [loading, setLoading] = useState(false)
-  const [tone, setTone] = useState('やさしめ')
+  const [strictness, setStrictness] = useState('普通') // コーチの厳しさ（講評と質疑応答で共通）
   // 詳細ページの「このお題でもう一度練習する」から来たときは、URLの ?topic= のお題を選んだ状態で始める
   // Client Component のページでは、searchParams（Promise）を React の use() で読む
   const topicParam = use(searchParams).topic
@@ -50,6 +53,8 @@ export default function Home({
   const [isRecording, setIsRecording] = useState(false) // 録音中は画面の表示（タイマー・お題の選択）を切り替える
   // 録音ボタンの段階（マイクの準備中・録音中・文字起こし中は、回答が確定していない）
   const [recorderPhase, setRecorderPhase] = useState<RecorderPhase>('idle')
+  const [judgeStarted, setJudgeStarted] = useState(false) // AIコーチとの質疑応答を始めたか（講評カードと入れ替える）
+  const [judgeActive, setJudgeActive] = useState(false) // AIコーチとの質疑応答の途中か
   const [elapsedSec, setElapsedSec] = useState(0) // 表示用の経過秒数
   const [durationSec, setDurationSec] = useState<number | null>(null) // 録音を止めたときに確定した秒数（未録音は null）
 
@@ -57,7 +62,20 @@ export default function Home({
   const limitSec = findLimitSec(topic)
 
   // 録音まわり（準備中・録音中・文字起こし中）か講評を作っている途中は、ほかの操作をさせない
-  const busy = recorderPhase !== 'idle' || loading
+  // コーチとの質疑応答の途中も、練習用の録音やクリアをさせない（やりとりの元の記録が変わってしまうため）
+  const busy = recorderPhase !== 'idle' || loading || judgeActive
+
+  // AIコーチとの質疑応答を始める（講評カードが質疑応答に入れ替わり、すぐ1問目を聞く）
+  function startJudge() {
+    setJudgeStarted(true)
+    setJudgeActive(true) // 1問目が届くまでの間も、練習用のボタンを止める
+  }
+
+  // 新しい練習を始めるときは、質疑応答の表示を講評カードに戻す
+  function resetJudge() {
+    setJudgeStarted(false)
+    setJudgeActive(false)
+  }
 
   // 録音中だけ経過時間を更新する
   // 「1秒ごとに+1」だとずれていくので、毎回「今 − 開始時刻」で計算し直す
@@ -75,6 +93,7 @@ export default function Home({
     setLoading(true)
     resetVoice()
     setSessionId(null)
+    resetJudge()
     const memoAtSubmit = memo // 待っている間にメモを書き足しても区別できるよう、送った時点のメモを残す
 
     try {
@@ -84,7 +103,7 @@ export default function Home({
         body: JSON.stringify({
           topic,
           answer,
-          tone,
+          strictness,
           recordedSmile, // 録音中に貯めた笑顔率の配列を送る
           durationSec, // 話した秒数（未録音は null）
           memo: memoAtSubmit, // 講評の前に書いたメモは一緒に保存される
@@ -122,6 +141,7 @@ export default function Home({
       setSavedMemo('')
     }
     setSessionId(null)
+    resetJudge()
     samplesRef.current = []
     recordingRef.current = true
     // onStart はマイクの許可が下りて録音が始まってから呼ばれるので、許可待ちの時間は含まれない
@@ -206,15 +226,19 @@ export default function Home({
               </select>
             </label>
             <label>
-              口調：
+              厳しさ：
               <select
-                value={tone}
-                onChange={(e) => setTone(e.target.value)}
+                value={strictness}
+                onChange={(e) => setStrictness(e.target.value)}
+                // 講評や質疑応答の途中に変えると、質問の聞き方や総評の厳しさがぶれるため
+                disabled={busy}
                 className="select ml-2 w-auto"
               >
-                <option value="やさしめ">やさしめ</option>
-                <option value="スパルタ">スパルタ</option>
-                <option value="ていねい">ていねい</option>
+                {STRICTNESS_LEVELS.map((s) => (
+                  <option key={s.label} value={s.label}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
@@ -272,6 +296,7 @@ export default function Home({
                 setMemo('')
                 setSavedMemo('')
                 setSessionId(null)
+                resetJudge()
               }}
               disabled={busy} // 録音・文字起こし・講評の途中に消すと、あとから届いた結果だけが残ってしまうため
               className="btn btn-outline btn-primary"
@@ -332,27 +357,19 @@ export default function Home({
             <div className="space-y-4">
               <FaceMeter onScore={handleScore} />
             </div>
+          ) : judgeStarted && sessionId !== null ? (
+            // AIコーチとの質疑応答。講評カードの場所に入れ替わって出す（コーチの講評は詳細ページで見返せる）
+            // 記録が変わったら key で最初から
+            <JudgePanel
+              key={sessionId}
+              sessionId={sessionId}
+              topic={topic}
+              strictness={strictness}
+              onActiveChange={setJudgeActive}
+            />
           ) : (
             <div className="border-8 border-teal-600/30 px-10 py-10 text-lg leading-12">
-              <ReactMarkdown
-                components={{
-                  // 出力のMarkdownの中に出てきたtagに指定した処理を使う
-                  strong: ({ children }) => (
-                    <strong className="block font-bold text-teal-700">
-                      {children}
-                    </strong>
-                  ),
-                  p: ({ children }) => (
-                    <p className="even:pb-10">
-                      <span className="border-b-2 border-dotted border-slate-400 pb-2 nth-[2]:border">
-                        {children}
-                      </span>
-                    </p>
-                  ),
-                }}
-              >
-                {feedback}
-              </ReactMarkdown>
+              <CoachFeedbackText>{feedback}</CoachFeedbackText>
 
               {/* 並びは詳細ページとそろえる：記録の状態／1段目 再生／2段目 音声のダウンロード・メール＋ページごとのボタン */}
               <div className="mt-8 space-y-4">
@@ -410,6 +427,25 @@ export default function Home({
                   </SignedOut>
                 </div>
               </div>
+
+              {/* AIコーチへの入り口（講評が記録できたときだけ）。押すと、このカードが質疑応答に入れ替わる */}
+              <SignedIn>
+                {sessionId !== null && (
+                  <div className="mt-10 space-y-3 border-t border-gray-200 pt-8">
+                    <p className="text-base text-gray-500">
+                      この回答をもとに、AIコーチが{JUDGE_QUESTION_COUNT}
+                      つ質問します。答え終わると、まとめて講評します。
+                    </p>
+                    <button
+                      onClick={startJudge}
+                      disabled={busy}
+                      className="btn btn-primary"
+                    >
+                      コーチに質問してもらう
+                    </button>
+                  </div>
+                )}
+              </SignedIn>
             </div>
           )}
         </section>

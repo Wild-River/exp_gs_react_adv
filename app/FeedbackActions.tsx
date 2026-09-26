@@ -1,6 +1,7 @@
 'use client'
 // app/FeedbackActions.tsx
-// 詳細ページ（保存済みの記録）の講評の下に並べるボタン
+// 保存済みの記録の講評の下に並べるボタン（再生・音声のダウンロード・メール＋ページごとのボタン）
+// 質疑応答をした記録では、コーチの講評ではなく総評の下に置き、総評を読み上げる（feedback に総評を渡す）
 // 並びは練習画面とそろえる：1段目 再生／2段目 音声のダウンロード・メール＋ページごとのボタン（children）
 
 import { useEffect, useRef } from 'react'
@@ -15,7 +16,7 @@ export default function FeedbackActions({
   children,
 }: {
   id: number
-  feedback: string | null // 講評のない記録では音声の段を出さない
+  feedback: string | null // 読み上げる講評（質疑応答をした記録では総評）。無ければ音声の段を出さない
   downloadName: string // 音声を保存するときのファイル名（例: coach_自己紹介を1分で_9-26.mp3）
   children?: React.ReactNode // 2段目のメールの右に置くボタン（詳細ページでは共有ボタン）
 }) {

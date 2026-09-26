@@ -14,6 +14,37 @@ export const TOPICS: Topic[] = [
   { label: '5分スピーチ', limitSec: 300 },
 ]
 
+// コーチの厳しさ（講評・質疑応答の質問・総評のすべてで共通）
+// label は画面に出す名前、prompt はAIへの指示に入れる「その厳しさでの振る舞い」
+// APIでは、送られてきた厳しさがこの中のどれかであることを確認してから、prompt をAIに渡す
+export const STRICTNESS_LEVELS = [
+  {
+    label: 'やさしいコーチ',
+    prompt:
+      'やさしく励ますコーチとして話す。まず良いところをしっかりほめ、改善点は「〜するともっと良くなります」のように前向きな提案の形で伝える。質問は答えやすいように、回答の中の話題を広げる聞き方をする。',
+  },
+  {
+    label: '普通',
+    prompt:
+      '落ち着いた丁寧な口調で話す。良い点と改善点をバランスよく、回答の内容にもとづいて伝える。質問は、回答の中身を確かめる標準的な深掘りをする。',
+  },
+  {
+    label: '厳しい面接官',
+    prompt:
+      '本番の厳しい面接官として話す。遠慮せず率直に、曖昧な点や根拠の弱い点をはっきり指摘し、ほめるのは本当に良かった点だけにする。質問は、根拠・数字・具体例を求めたり、弱い点や矛盾を突いたりして、答えにくいところまで踏み込む。ただし人格を否定する言葉や乱暴な言葉は使わない。',
+  },
+] as const
+
+// 厳しさの名前から設定を取り出す（一覧にない値は null。APIで不正な値を弾くのに使う）
+export function findStrictness(label: unknown) {
+  return STRICTNESS_LEVELS.find((s) => s.label === label) ?? null
+}
+
+// AIコーチとの質疑応答の質問の数（やり直しなし）
+export const JUDGE_QUESTION_COUNT = 3
+// 質疑応答での1回の回答の文字数上限（1問あたり数十秒〜1分ほど話す想定）
+export const MAX_JUDGE_ANSWER_LENGTH = 1000
+
 // 回答の文字数上限。話す速さは1分≈300字なので、約10分ぶん
 export const MAX_ANSWER_LENGTH = 3000
 
@@ -48,7 +79,12 @@ export function formatSeconds(sec: number): string {
 
 // 講評の音声を保存するときのファイル名（例: coach_自己紹介を1分で_9-26.mp3）
 // 日付は日本時間で出し（サーバーはUTCで動くことがある）、ファイル名に使えない文字は _ にする
-export function coachAudioFileName(topic: string, date: Date): string {
+// kind を渡すと名前に入る（質疑応答の総評なら 'coach_総評_自己紹介を1分で_9-26.mp3'）
+export function coachAudioFileName(
+  topic: string,
+  date: Date,
+  kind?: string,
+): string {
   const day = date
     .toLocaleDateString('ja-JP', {
       timeZone: 'Asia/Tokyo',
@@ -56,5 +92,6 @@ export function coachAudioFileName(topic: string, date: Date): string {
       day: 'numeric',
     })
     .replaceAll('/', '-')
-  return `coach_${topic}_${day}.mp3`.replace(/[\\/:*?"<>|\s]/g, '_')
+  const prefix = kind ? `coach_${kind}` : 'coach'
+  return `${prefix}_${topic}_${day}.mp3`.replace(/[\\/:*?"<>|\s]/g, '_')
 }

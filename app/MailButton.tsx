@@ -38,7 +38,7 @@ export default function MailButton({ sessionId }: { sessionId: number }) {
     <button
       onClick={deliver}
       disabled={sending}
-      className="btn btn-outline btn-primary"
+      className="btn btn-warning" // 色は「録音する」ボタンとそろえて黄色（warning）
     >
       {sending ? '送信中…' : 'メールで受け取る'}
     </button>

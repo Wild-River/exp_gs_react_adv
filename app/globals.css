@@ -43,6 +43,61 @@
   }
 }
 
+/* AIコーチとの質疑応答の吹き出し（JudgeChat で使う） */
+/* 右：あなたの回答（右にしっぽ）／左：コーチ（左右を反転して、左にしっぽ） */
+/* 色は --bubble-color の1か所で、本体としっぽの両方に効く。文字色は --bubble-text */
+@layer components {
+  .speech-bubble {
+    /* あなたの回答：アプリのメインの色（teal）に白い文字 */
+    --bubble-color: var(--color-primary);
+    --bubble-text: var(--color-primary-content);
+    position: relative;
+    display: inline-block;
+    max-width: 85%; /* 長い回答でもカードの端まで広がりすぎないように */
+    margin-right: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: var(--bubble-color);
+    text-align: left;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bubble-text);
+    white-space: pre-wrap; /* 回答の改行をそのまま出す */
+  }
+
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    top: 35%;
+    right: 0;
+    border-style: solid;
+    border-width: 0 0 16px 16px;
+    border-color: transparent transparent transparent var(--bubble-color);
+    /* translate と transform を別々に書くと、ビルド時の最適化で translate が消えてしまうので、transform にまとめる */
+    /* （translate プロパティは transform より先に効くので、この順で書けば見た目は同じ） */
+    transform: translate(100%, calc(-50% - 0.4px)) skew(0, -10deg);
+    transform-origin: left;
+  }
+
+  /* コーチ（左）：薄いグレーに黒い文字。しっぽを左に出すよう、向きと余白を反転する */
+  .speech-bubble-left {
+    --bubble-color: #eef0f2;
+    --bubble-text: #171717;
+    margin-right: 0;
+    margin-left: 16px;
+  }
+
+  .speech-bubble-left::after {
+    right: auto;
+    left: 0;
+    border-width: 0 16px 16px 0;
+    border-color: transparent var(--bubble-color) transparent transparent;
+    transform: translate(-100%, calc(-50% - 0.4px)) skew(0, 10deg);
+    transform-origin: right;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
