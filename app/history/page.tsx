@@ -14,6 +14,24 @@ export const dynamic = 'force-dynamic'
 // グラフと一覧に出す件数（グラフの棒が並びきる数に合わせ、一覧も同じ記録を出す）
 const SHOW_LIMIT = 12
 
+// グラフの日付ラベル用。サーバーはUTCで動くことがあるので、日本時間の月と日を出す
+function formatMonth(date: Date) {
+  return date
+    .toLocaleDateString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      month: 'numeric',
+    })
+    .replace('月', '')
+}
+function formatDay(date: Date) {
+  return date
+    .toLocaleDateString('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      day: 'numeric',
+    })
+    .replace('日', '')
+}
+
 // CSSの出し分け（並び替えは daisyUI の join で1つにつながったボタンにする）
 const selected = 'join-item btn btn-primary'
 const unselected = 'join-item btn btn-outline btn-primary'
@@ -98,14 +116,17 @@ export default async function HistoryPage({
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           {/* ── 成長グラフ ── */}
           <aside className="lg:sticky lg:top-8 lg:col-span-7 lg:self-start">
-            <div className="flex h-140 items-end gap-6 border-8 border-teal-600/30 px-6 py-6">
+            {/* 12本の列が幅を等分して縮む（flex-1 min-w-0）。列の間の余白も画面幅に合わせて小さくする
+                （列が日付の文字幅より縮めず、余白も固定だと、狭い画面でグラフが枠の外にはみ出すため） */}
+            <div className="flex h-140 items-end gap-1 border-8 border-teal-600/30 px-3 py-6 sm:gap-2 sm:px-6 xl:gap-4">
               {/* 取ってくる時点で12件なので、ここでは左から古い（低い）順に並べ替えるだけ */}
               {rows.toReversed().map((row) => (
                 <div
                   key={row.id}
-                  className="flex h-full flex-col items-center gap-1"
+                  className="flex h-full min-w-0 flex-1 flex-col items-center gap-1"
                 >
-                  <div className="group relative flex w-4 flex-1 items-end">
+                  {/* 棒は列の中央に、太さは最大16px（w-4）のまま */}
+                  <div className="group relative flex w-full max-w-4 flex-1 items-end">
                     <div
                       style={{ height: `${row.smileScore ?? 0}%` }}
                       className="relative w-full rounded-t bg-teal-500 hover:bg-teal-600"
@@ -116,11 +137,10 @@ export default async function HistoryPage({
                       </span>
                     </div>
                   </div>
-                  <div className="font-bold text-gray-900">
-                    {row.createdAt.toLocaleDateString('ja-JP', {
-                      month: 'numeric',
-                      day: 'numeric',
-                    })}
+                  {/* 日付：狭い画面では「9/」「26」の2段にして列の幅に収める。sm 以上は1行 */}
+                  <div className="flex flex-col items-center text-[10px] leading-tight font-bold text-gray-900 sm:flex-row sm:text-sm">
+                    <span>{formatMonth(row.createdAt)}/</span>
+                    <span>{formatDay(row.createdAt)}</span>
                   </div>
                 </div>
               ))}
@@ -134,10 +154,8 @@ export default async function HistoryPage({
                 <div key={row.id} className="flex justify-between">
                   <div className="flex gap-2 font-bold text-gray-900">
                     <div className="w-8">
-                      {row.createdAt.toLocaleDateString('ja-JP', {
-                        month: 'numeric',
-                        day: 'numeric',
-                      })}
+                      {/* グラフと同じく日本時間で出す（サーバーのUTCで1日ずれないように） */}
+                      {formatMonth(row.createdAt)}/{formatDay(row.createdAt)}
                     </div>
                     <div className="">▶︎{row.topic}</div>
                     {/* 話した時間（計っていない記録は出さない） */}

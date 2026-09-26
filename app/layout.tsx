@@ -14,8 +14,22 @@ import {
 } from '@clerk/nextjs'
 
 export const metadata: Metadata = {
-  title: 'プレゼン&就活面接 AIコーチ',
-  description: 'あなたのプレゼンをAIがコーチング',
+  // 各ページで title を決めると「〇〇｜AI練習コーチ」になる（決めていないページは default）
+  title: { default: 'AI練習コーチ', template: '%s｜AI練習コーチ' },
+  description:
+    '声と表情をAIが見て、何度でも講評してくれる面接・スピーチの練習アプリ',
+  // SNSに貼ったときの表示。画像は app/opengraph-image.tsx で作る
+  // 画像のURLは metadataBase から作られる（未設定でも Vercel ではデプロイ先のURLになる）
+  openGraph: {
+    title: 'AI練習コーチ',
+    description: '声と表情をAIが見て、何度でも講評してくれる練習アプリ',
+    siteName: 'AI練習コーチ',
+    locale: 'ja_JP',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
 export default function RootLayout({
@@ -35,7 +49,7 @@ export default function RootLayout({
                   href="/"
                   className="text-lg font-bold text-teal-600 transition-opacity hover:opacity-70"
                 >
-                  プレゼン&就活面接 AIコーチ
+                  AI練習コーチ
                 </Link>
               </div>
               {/* 右：ナビとログイン状態 */}

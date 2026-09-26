@@ -11,6 +11,7 @@ export const TOPICS: Topic[] = [
   { label: '志望動機', limitSec: 60 },
   { label: '自分の強み', limitSec: 60 },
   { label: '転職理由', limitSec: 60 },
+  { label: '3分プレゼン', limitSec: 180 },
   { label: '5分スピーチ', limitSec: 300 },
 ]
 
