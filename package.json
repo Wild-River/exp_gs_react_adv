@@ -12,7 +12,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@andresaya/edge-tts": "1.8.0",
+    "@andresaya/edge-tts": "1.9.1",
     "@clerk/nextjs": "^6.39.6",
     "@neondatabase/serverless": "^1.1.0",
     "@vladmandic/face-api": "^1.7.15",

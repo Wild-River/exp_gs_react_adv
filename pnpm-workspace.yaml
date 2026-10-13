@@ -2,3 +2,5 @@ allowBuilds:
   '@clerk/shared': true
   esbuild: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@andresaya/edge-tts@1.9.1'
