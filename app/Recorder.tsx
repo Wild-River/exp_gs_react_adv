@@ -47,7 +47,9 @@ export default function Recorder({
       )
       return
     }
-    const recorder = new MediaRecorder(stream)
+    // ブラウザ任せ（Chromeは約128kbps）だと5分で約4.8MBになり、Vercelのボディ上限（4.5MB）を超えて 413 になる
+    // 話し声の文字起こしには32kbpsで十分（5分で約1.2MB）
+    const recorder = new MediaRecorder(stream, { audioBitsPerSecond: 32000 })
     chunksRef.current = []
     // ondataavailableで音の断片を貯める
     recorder.ondataavailable = (e) => chunksRef.current.push(e.data)
@@ -73,6 +75,13 @@ export default function Recorder({
           method: 'POST',
           body: form,
         })
+        // 上限超えはVercelがJSONでない本文で返すので、res.json() より先に見分ける
+        if (res.status === 413) {
+          onError?.(
+            '録音が長すぎて送信できませんでした。もう少し短く録音してください。',
+          )
+          return
+        }
         const data = await res.json()
         if (!res.ok || typeof data.text !== 'string') {
           throw new Error(data.error ?? `transcribe ${res.status}`)
