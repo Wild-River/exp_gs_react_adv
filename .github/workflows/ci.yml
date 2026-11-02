@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # pnpm のバージョンは package.json の packageManager に従う
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm exec tsc --noEmit
+
+      # Dependabot の Pull Request にはシークレットが渡らないので、ダミーの値でビルドする
+      - run: pnpm build
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2kuZXhhbXBsZS5jb20k
+          CLERK_SECRET_KEY: sk_test_dummy
+          GROQ_API_KEY: dummy
+          RESEND_API_KEY: dummy
