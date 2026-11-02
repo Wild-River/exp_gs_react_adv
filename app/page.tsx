@@ -7,7 +7,7 @@ import FaceMeter from './FaceMeter'
 import Recorder, { type RecorderPhase } from './Recorder'
 import RecordingTimer from './RecordingTimer'
 import Link from 'next/link'
-import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs'
+import { Show, SignInButton } from '@clerk/nextjs'
 import { useToast } from './Toast'
 import {
   TOPICS,
@@ -324,7 +324,7 @@ export default function Home({
               className="textarea w-full"
               placeholder="ここにメモを残す"
             />
-            <SignedIn>
+            <Show when="signed-in">
               {sessionId !== null ? (
                 // 書き足して保存が必要なときだけボタンを出す（押せないグレーのボタンは出さない）
                 memoChanged || memoSaving ? (
@@ -347,7 +347,7 @@ export default function Home({
                   メモは講評と一緒に記録されます。講評のあとに書き足すこともできます。
                 </p>
               )}
-            </SignedIn>
+            </Show>
           </div>
         </aside>
 
@@ -374,7 +374,7 @@ export default function Home({
               {/* 並びは詳細ページとそろえる：記録の状態／1段目 再生／2段目 音声のダウンロード・メール＋ページごとのボタン */}
               <div className="mt-8 space-y-4">
                 {/* 記録の状態（ログイン中だけ） */}
-                <SignedIn>
+                <Show when="signed-in">
                   {sessionId !== null ? (
                     <p className="font-semibold text-teal-700">
                       ✓ 記録しました
@@ -386,7 +386,7 @@ export default function Home({
                       </p>
                     )
                   )}
-                </SignedIn>
+                </Show>
                 {/* 音声はログインしていなくても聞ける・保存できる */}
                 <CoachVoicePlayer
                   audioSrc={audioSrc}
@@ -404,7 +404,7 @@ export default function Home({
                       )
                     }
                   />
-                  <SignedIn>
+                  <Show when="signed-in">
                     {sessionId !== null && (
                       <>
                         <MailButton sessionId={sessionId} />
@@ -416,20 +416,20 @@ export default function Home({
                         </Link>
                       </>
                     )}
-                  </SignedIn>
-                  <SignedOut>
+                  </Show>
+                  <Show when="signed-out">
                     <SignInButton>
                       <button className="btn btn-primary">ログインする</button>
                     </SignInButton>
                     <p className="text-sm text-gray-500">
                       ログインすると、練習が自動で記録され、メールでも受け取れます。
                     </p>
-                  </SignedOut>
+                  </Show>
                 </div>
               </div>
 
               {/* AIコーチへの入り口（講評が記録できたときだけ）。押すと、このカードが質疑応答に入れ替わる */}
-              <SignedIn>
+              <Show when="signed-in">
                 {sessionId !== null && (
                   <div className="mt-10 space-y-3 border-t border-gray-200 pt-8">
                     <p className="text-base text-gray-500">
@@ -445,7 +445,7 @@ export default function Home({
                     </button>
                   </div>
                 )}
-              </SignedIn>
+              </Show>
             </div>
           )}
         </section>

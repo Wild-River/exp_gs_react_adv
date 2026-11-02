@@ -6,10 +6,9 @@ import NavLinks from './NavLinks'
 import { ToastProvider } from './Toast'
 import {
   ClerkProvider,
+  Show,
   SignInButton,
   SignUpButton,
-  SignedIn,
-  SignedOut,
   UserButton,
 } from '@clerk/nextjs'
 
@@ -38,9 +37,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <ClerkProvider>
-      <html lang="ja" className="h-full antialiased">
-        <body className="flex min-h-full flex-col">
+    <html lang="ja" className="h-full antialiased">
+      <body className="flex min-h-full flex-col">
+        <ClerkProvider>
           <ToastProvider>
             <header className="navbar bg-base-100 px-4 shadow-sm sm:px-6 lg:px-8">
               {/* 左：アプリ名（トップへ戻るリンク） */}
@@ -55,7 +54,7 @@ export default function RootLayout({
               {/* 右：ナビとログイン状態 */}
               <div className="flex flex-none items-center gap-2">
                 <NavLinks />
-                <SignedOut>
+                <Show when="signed-out">
                   <SignInButton>
                     <button className="btn btn-primary">ログイン</button>
                   </SignInButton>
@@ -64,16 +63,16 @@ export default function RootLayout({
                       新規登録
                     </button>
                   </SignUpButton>
-                </SignedOut>
-                <SignedIn>
+                </Show>
+                <Show when="signed-in">
                   <UserButton />
-                </SignedIn>
+                </Show>
               </div>
             </header>
             {children}
           </ToastProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   )
 }
