@@ -4,3 +4,8 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@andresaya/edge-tts@1.9.1'
+overrides:
+  # drizzle-kit が古い @esbuild-kit 経由で脆弱な esbuild 0.18 を使うため、修正版に引き上げる
+  esbuild@<0.25.0: ^0.25.12
+  # @typescript-eslint/typescript-estree が最新版でも minimatch ^10 を要求し、10 系に修正版が無いため 11 系へ引き上げる
+  minimatch@^10.0.0: ^11.0.1
